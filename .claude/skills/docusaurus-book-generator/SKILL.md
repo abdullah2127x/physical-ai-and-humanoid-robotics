@@ -17,8 +17,8 @@ Generate a fully configured Docusaurus book website with Tailwind CSS, TypeScrip
 
 ### 1. Project Initialization
 - Run `npx create-docusaurus@latest book-source classic --typescript` to create a new Docusaurus v3 project
-- Install Tailwind CSS with PostCSS configuration (`npm install -D tailwindcss postcss autoprefixer`)
-- Initialize Tailwind config: `npx tailwindcss init -p`
+- Install Tailwind CSS v4 with PostCSS configuration (`npm install -D tailwindcss @tailwindcss/postcss autoprefixer`)
+- Create `postcss.config.js` manually (Tailwind v4 no longer uses `npx tailwindcss init`)
 
 ### 2. Dynamic Configuration Setup
 - **Title Generation**: If user provides main title, automatically generate:
@@ -29,10 +29,11 @@ Generate a fully configured Docusaurus book website with Tailwind CSS, TypeScrip
 - Update `docusaurus.config.ts` with provided/configured title, tagline, and metadata
 - Configure proper GitHub Pages settings (organizationName, projectName, baseUrl) based on provided GitHub details
 
-### 3. Styling Configuration
-- Configure `tailwind.config.js` with appropriate content paths
-- Update `src/css/custom.css` to include Tailwind directives (`@tailwind base; @tailwind components; @tailwind utilities;`)
-- Add any custom brand colors or styling
+### 3. Styling Configuration (Tailwind CSS v4)
+- Create `postcss.config.js` with `@tailwindcss/postcss` plugin (not `tailwindcss`)
+- Create `tailwind.config.js` with content paths and `corePlugins: { preflight: false }` to avoid conflicts with Docusaurus/Infima
+- Update `src/css/custom.css` to use Tailwind v4 import syntax: `@import "tailwindcss";` (not the old `@tailwind` directives)
+- Add any custom brand colors or styling to CSS variables
 
 ### 4. Content Cleanup
 - Remove all default Docusaurus tutorial content (tutorial-basics, tutorial-extras)
