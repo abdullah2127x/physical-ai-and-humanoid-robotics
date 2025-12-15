@@ -11,12 +11,12 @@ Generate a fully configured Docusaurus book website with Tailwind CSS, TypeScrip
 - `description` (optional): Custom description; if not provided, generates from title
 - `github_org` (optional): GitHub organization name for deployment
 - `github_repo` (optional): GitHub repository name for deployment
-- `output_dir` (optional): Directory name for the website (default: "website")
+- `output_dir` (optional): Directory name for the website (default: "book-source")
 
 ## Process
 
 ### 1. Project Initialization
-- Run `npx create-docusaurus@latest website classic --typescript` to create a new Docusaurus v3 project
+- Run `npx create-docusaurus@latest book-source classic --typescript` to create a new Docusaurus v3 project
 - Install Tailwind CSS with PostCSS configuration (`npm install -D tailwindcss postcss autoprefixer`)
 - Initialize Tailwind config: `npx tailwindcss init -p`
 

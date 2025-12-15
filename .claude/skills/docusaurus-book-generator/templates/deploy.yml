@@ -18,15 +18,15 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-        working-directory: website
+        working-directory: book-source
       - name: Build website
         run: npm run build
-        working-directory: website
+        working-directory: book-source
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./website/build
+          publish_dir: ./book-source/build
           # The following lines assign commit authorship to the PR author
           # and should only be used for deployments from pull request branches
           user_name: ${{ github.event.pull_request.user.login }}

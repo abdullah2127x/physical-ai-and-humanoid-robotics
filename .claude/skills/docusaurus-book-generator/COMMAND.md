@@ -7,7 +7,7 @@ Creates a new Docusaurus-based book website with Tailwind CSS, TypeScript, and G
 
 ### Usage
 ```
-/create-book --title "Your Book Title" [--tagline "Your tagline"] [--description "Your description"] [--github-org "your-org"] [--github-repo "your-repo"] [--output-dir "website"]
+/create-book --title "Your Book Title" [--tagline "Your tagline"] [--description "Your description"] [--github-org "your-org"] [--github-repo "your-repo"] [--output-dir "book-source"]
 ```
 
 ### Parameters
@@ -16,7 +16,7 @@ Creates a new Docusaurus-based book website with Tailwind CSS, TypeScript, and G
 - `--description` (optional): Custom description (auto-generated if not provided)
 - `--github-org` (optional): GitHub organization for deployment
 - `--github-repo` (optional): GitHub repository for deployment
-- `--output-dir` (optional): Output directory name (default: "website")
+- `--output-dir` (optional): Output directory name (default: "book-source")
 
 ### Example
 ```

@@ -7,10 +7,10 @@ This script implements the Docusaurus Book Generator skill that automates the co
 ### 1. Project Initialization
 ```bash
 # Create new Docusaurus project with TypeScript and Classic theme
-npx create-docusaurus@latest website classic --typescript
+npx create-docusaurus@latest book-source classic --typescript
 
-# Navigate to website directory
-cd website
+# Navigate to book-source directory
+cd book-source
 
 # Install Tailwind CSS dependencies
 npm install -D tailwindcss postcss autoprefixer
