@@ -35,6 +35,14 @@ function generateKeywords(title: string): string {
   return title.toLowerCase().replace(/\s+/g, ', ') + ', documentation, guide, tutorial';
 }
 
+function escapeForRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escapeForTemplate(str: string): string {
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\$/g, '\\$');
+}
+
 function createDocusaurusProject(outputDir: string): void {
   console.log('Creating Docusaurus project...');
   execSync(`npx create-docusaurus@latest ${outputDir} classic --typescript`, { stdio: 'inherit' });
@@ -54,43 +62,16 @@ function installTailwind(outputDir: string): void {
 function configureTailwind(outputDir: string): void {
   console.log('Configuring Tailwind CSS v4...');
 
-  // Create postcss.config.js with @tailwindcss/postcss (Tailwind v4 requirement)
-  const postcssConfigPath = path.join(outputDir, 'postcss.config.js');
-  const postcssConfig = `module.exports = {
-  plugins: {
-    '@tailwindcss/postcss': {},
-    autoprefixer: {},
-  },
-};
-`;
-  fs.writeFileSync(postcssConfigPath, postcssConfig);
-
-  // Create tailwind.config.js
-  const tailwindConfigPath = path.join(outputDir, 'tailwind.config.js');
-  const tailwindConfig = `/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-    './docs/**/*.{md,mdx}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-  corePlugins: {
-    preflight: false, // Disable preflight to avoid conflicts with Docusaurus/Infima
-  },
-};
-`;
-  fs.writeFileSync(tailwindConfigPath, tailwindConfig);
+  // Tailwind v4 doesn't use tailwind.config.js or postcss.config.js
+  // It's configured directly via CSS and Docusaurus PostCSS plugin
 
   // Update src/css/custom.css to use Tailwind v4 import syntax
   const customCssPath = path.join(outputDir, 'src', 'css', 'custom.css');
   if (fs.existsSync(customCssPath)) {
     let customCss = fs.readFileSync(customCssPath, 'utf8');
-    // Add Tailwind v4 import at the top (NOT the old @tailwind directives)
-    if (!customCss.includes('@import "tailwindcss"')) {
-      customCss = '@import "tailwindcss";\n\n' + customCss;
+    // Add Tailwind v4 import at the top (theme + utilities only, skip base layer)
+    if (!customCss.includes('@import "tailwindcss')) {
+      customCss = '@import "tailwindcss/theme" layer(theme);\n@import "tailwindcss/utilities" layer(utilities);\n\n' + customCss;
       fs.writeFileSync(customCssPath, customCss);
     }
   }
@@ -104,45 +85,83 @@ function updateDocusaurusConfig(outputDir: string, config: BookConfig): void {
   // Read the existing config
   let configContent = fs.readFileSync(docusaurusConfigPath, 'utf8');
 
-  // Replace title, tagline, and other metadata
+  // Add PostCSS plugin configuration for Tailwind v4
+  // Insert after the config constant declaration
+  const pluginsConfig = `
+  // Enable PostCSS plugins for Tailwind CSS v4
+  plugins: [
+    function tailwindPlugin() {
+      return {
+        name: 'docusaurus-tailwindcss',
+        configurePostCss(postcssOptions) {
+          postcssOptions.plugins.push(require('@tailwindcss/postcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
+          return postcssOptions;
+        },
+      };
+    },
+  ],
+`;
+
+  // Insert plugins configuration after the future block if it exists, or after favicon
+  // Use a more specific regex that handles nested braces
+  if (configContent.includes('future:')) {
+    // Match the entire future block with nested braces
+    configContent = configContent.replace(
+      /(future:\s*\{[\s\S]*?\},)/,
+      `$1${pluginsConfig}`
+    );
+  } else {
+    configContent = configContent.replace(
+      /(favicon:\s*'[^']*',)/,
+      `$1${pluginsConfig}`
+    );
+  }
+
+  // Replace title, tagline, and other metadata at the top level
+  // Use more specific regex to target the config object properties
+  // Escape single quotes in user input to prevent breaking the config
+  const safeTitle = config.title.replace(/'/g, "\\'");
+  const safeTagline = (config.tagline || generateTagline(config.title)).replace(/'/g, "\\'");
+
   configContent = configContent.replace(
-    /title: '.*',/,
-    `title: '${config.title}',`
+    /(\nconst config[^{]*\{[\s\S]*?)\btitle:\s*'[^']*',/,
+    `$1title: '${safeTitle}',`
   );
 
   configContent = configContent.replace(
-    /tagline: '.*',/,
-    `tagline: '${config.tagline || generateTagline(config.title)}',`
+    /(\nconst config[^{]*\{[\s\S]*?)\btagline:\s*'[^']*',/,
+    `$1tagline: '${safeTagline}',`
   );
 
   // Update URL and base URL for GitHub Pages
   if (config.githubOrg && config.githubRepo) {
     configContent = configContent.replace(
-      /url: '.*',/,
+      /\burl:\s*'[^']*',/,
       `url: 'https://${config.githubOrg}.github.io',`
     );
 
     configContent = configContent.replace(
-      /baseUrl: '.*',/,
+      /\bbaseUrl:\s*'[^']*',/,
       `baseUrl: '/${config.githubRepo}/',`
     );
 
     // Update organization and project names
     configContent = configContent.replace(
-      /organizationName: '.*',/,
+      /\borganizationName:\s*'[^']*',/,
       `organizationName: '${config.githubOrg}',`
     );
 
     configContent = configContent.replace(
-      /projectName: '.*',/,
+      /\bprojectName:\s*'[^']*',/,
       `projectName: '${config.githubRepo}',`
     );
   }
 
-  // Update navbar title
+  // Update navbar title specifically in the themeConfig
   configContent = configContent.replace(
-    /title: '.*',/,
-    `title: '${config.title}',`
+    /(themeConfig:[\s\S]*?navbar:\s*\{[\s\S]*?)\btitle:\s*'[^']*',/,
+    `$1title: '${safeTitle}',`
   );
 
   // Update description in metadata
@@ -154,8 +173,9 @@ function updateDocusaurusConfig(outputDir: string, config: BookConfig): void {
   }
 
   // Disable blog if not needed for a book
+  // Use a more robust regex that handles nested objects
   configContent = configContent.replace(
-    /blog: \{[^}]*\},/,
+    /blog:\s*\{[\s\S]*?\n\s*\},/,
     'blog: false, // Disable blog functionality for the book'
   );
 
@@ -166,6 +186,30 @@ function updateDocusaurusConfig(outputDir: string, config: BookConfig): void {
       `          editUrl:\n            'https://github.com/${config.githubOrg}/${config.githubRepo}/edit/main/${outputDir}/docs/',`
     );
   }
+
+  // Fix sidebar reference in navbar (tutorial -> book)
+  configContent = configContent.replace(
+    /sidebarId:\s*'tutorialSidebar'/,
+    "sidebarId: 'bookSidebar'"
+  );
+
+  // Change navbar label from Tutorial to Book
+  configContent = configContent.replace(
+    /(type:\s*'docSidebar',[\s\S]*?sidebarId:\s*'bookSidebar'[\s\S]*?label:\s*)'Tutorial'/,
+    "$1'Book'"
+  );
+
+  // Remove blog link from navbar
+  configContent = configContent.replace(
+    /\{to:\s*'\/blog',\s*label:\s*'Blog',\s*position:\s*'left'\},?\n?\s*/,
+    ''
+  );
+
+  // Remove blog link from footer
+  configContent = configContent.replace(
+    /\{\s*label:\s*'Blog',\s*to:\s*'\/blog',?\s*\},?\n?\s*/,
+    ''
+  );
 
   fs.writeFileSync(docusaurusConfigPath, configContent);
 }
@@ -345,6 +389,33 @@ function removeDefaultContent(outputDir: string): void {
 }
 
 
+function fixTsConfig(outputDir: string): void {
+  console.log('Fixing TypeScript configuration...');
+
+  const tsconfigPath = path.join(outputDir, 'tsconfig.json');
+  if (fs.existsSync(tsconfigPath)) {
+    let tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+
+    // Add ignoreDeprecations to silence baseUrl deprecation warning in TypeScript 5.x+
+    // The baseUrl option is deprecated and will stop functioning in TypeScript 7.0
+    if (!tsconfigContent.includes('ignoreDeprecations')) {
+      // Insert ignoreDeprecations after baseUrl or jsx
+      if (tsconfigContent.includes('"jsx"')) {
+        tsconfigContent = tsconfigContent.replace(
+          /("jsx":\s*"[^"]*")/,
+          '$1,\n    "ignoreDeprecations": "6.0"'
+        );
+      } else if (tsconfigContent.includes('"baseUrl"')) {
+        tsconfigContent = tsconfigContent.replace(
+          /("baseUrl":\s*"[^"]*")/,
+          '$1,\n    "ignoreDeprecations": "6.0"'
+        );
+      }
+      fs.writeFileSync(tsconfigPath, tsconfigContent);
+    }
+  }
+}
+
 function updateSidebar(outputDir: string): void {
   console.log('Updating sidebar configuration...');
 
@@ -433,6 +504,7 @@ function main(): void {
   updateIntroPage(outputDir, config);
   updateHomepage(outputDir, config);
   updateSidebar(outputDir);
+  fixTsConfig(outputDir);
 
   // Remove default content
   removeDefaultContent(outputDir);

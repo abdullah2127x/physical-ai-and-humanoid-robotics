@@ -45,51 +45,65 @@ node .claude/skills/docusaurus-book-generator/scripts/setup-book.ts --title "Phy
 
 1. Creates a new Docusaurus v3 project with TypeScript and Classic theme
 2. Installs Tailwind CSS v4 with `@tailwindcss/postcss` plugin
-3. Creates `postcss.config.js` with correct v4 configuration
-4. Creates `tailwind.config.js` with content paths and preflight disabled
-5. Updates `src/css/custom.css` with `@import "tailwindcss";` syntax
-6. Updates the Docusaurus configuration with your book's title, tagline, and metadata
-7. Removes all default Docusaurus content (tutorials, blog posts)
-8. Updates the homepage with your book's information
-9. Sets up project structure ready for GitHub Pages deployment
-10. Sets up a basic sidebar structure for your book
-11. Updates the intro page with your book's information
+3. **Configures PostCSS plugin directly in `docusaurus.config.ts`** (Tailwind v4 doesn't use separate config files)
+4. Updates `src/css/custom.css` with `@import "tailwindcss";` syntax
+5. Updates the Docusaurus configuration with your book's title, tagline, and metadata
+6. Removes all default Docusaurus content (tutorials, blog posts)
+7. Updates the homepage with your book's information
+8. Sets up project structure ready for GitHub Pages deployment
+9. Sets up a basic sidebar structure for your book
+10. Updates the intro page with your book's information
 
 ## Tailwind CSS v4 Configuration
 
-This skill uses Tailwind CSS v4, which has different configuration than v3:
+**IMPORTANT**: Tailwind CSS v4 has a completely different configuration approach than v3!
 
-### postcss.config.js
-```javascript
-module.exports = {
-  plugins: {
-    '@tailwindcss/postcss': {},  // NOT 'tailwindcss'
-    autoprefixer: {},
-  },
-};
-```
+### What's Different in v4:
+- ❌ **NO** `postcss.config.js` file needed
+- ❌ **NO** `tailwind.config.js` file needed
+- ✅ Configuration is done directly in `docusaurus.config.ts` using PostCSS plugin
+- ✅ CSS uses `@import "tailwindcss";` instead of `@tailwind` directives
 
-### tailwind.config.js
-```javascript
-module.exports = {
-  content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-    './docs/**/*.{md,mdx}',
+### docusaurus.config.ts
+```typescript
+const config: Config = {
+  // ... other config ...
+
+  // Enable PostCSS plugins for Tailwind CSS v4
+  plugins: [
+    function tailwindPlugin() {
+      return {
+        name: 'docusaurus-tailwindcss',
+        configurePostCss(postcssOptions) {
+          postcssOptions.plugins.push(require('@tailwindcss/postcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
+          return postcssOptions;
+        },
+      };
+    },
   ],
-  theme: { extend: {} },
-  plugins: [],
-  corePlugins: {
-    preflight: false,  // Avoid conflicts with Docusaurus/Infima
-  },
+
+  // ... rest of config ...
 };
 ```
 
 ### src/css/custom.css
 ```css
-@import "tailwindcss";  /* NOT @tailwind base; @tailwind components; @tailwind utilities; */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
 
 /* Your custom styles... */
 ```
+
+**IMPORTANT:** We import ONLY the theme (CSS variables) and utilities layers:
+- ✅ `tailwindcss/theme` - Provides CSS custom properties for colors, spacing, etc.
+- ✅ `tailwindcss/utilities` - Provides utility classes (bg-*, text-*, p-*, etc.)
+- ❌ Skips `tailwindcss/base` - The base reset layer that would break Docusaurus/Infima
+
+This prevents Tailwind from overriding Docusaurus's default styles, preserving:
+- Layout and responsiveness
+- Typography and spacing
+- Button and component styles
 
 ## Output
 
@@ -112,14 +126,19 @@ After running the script, you'll have:
 
 ## Troubleshooting
 
-### PostCSS Plugin Error
-**Error**: `It looks like you're trying to use 'tailwindcss' directly as a PostCSS plugin`
-**Solution**: Ensure `@tailwindcss/postcss` is installed and used in postcss.config.js
+### Tailwind Classes Not Working
+**Symptom**: Tailwind classes appear in HTML but no styling is applied
+**Cause**: Tailwind v4 requires PostCSS plugin configuration in `docusaurus.config.ts`
+**Solution**: This skill automatically adds the PostCSS plugin configuration. If you set it up manually, ensure the `plugins` array with `configurePostCss` is present in your config.
 
 ### CSS Import Error
 **Error**: Unknown at-rule `@tailwind`
-**Solution**: Use `@import "tailwindcss";` instead of old `@tailwind` directives
+**Solution**: Use `@import "tailwindcss";` instead of old `@tailwind base/components/utilities` directives (Tailwind v4 syntax)
 
 ### Sidebar Empty Category Error
 **Error**: `Sidebar category has neither any subitem nor a link`
 **Solution**: Don't create empty sidebar categories - add items or remove the category
+
+### Wrong Tailwind Version Installed
+**Issue**: If you have Tailwind v3 patterns (config files) that aren't working
+**Solution**: Make sure you're using Tailwind v4 (`tailwindcss@^4.0.0`) and follow the v4 configuration approach (no config files, use `@import` in CSS)
