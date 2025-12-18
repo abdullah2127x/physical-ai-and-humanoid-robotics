@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Physical AI and Humanoid Robotics',
-  tagline: 'Exploring Physical AI and Humanoid Robotics',
+  title: 'Vectra',
+  tagline: 'Physical AI & Humanoid Robotics',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -73,9 +73,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Physical AI and Humanoid Robotics',
+      title: '',
       logo: {
-        alt: 'Physical AI and Humanoid Robotics Logo',
+        alt: 'Vectra Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -114,7 +114,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Physical AI and Humanoid Robotics. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Vectra. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

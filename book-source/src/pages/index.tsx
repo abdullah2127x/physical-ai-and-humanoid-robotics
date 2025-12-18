@@ -311,7 +311,7 @@ function HeroSection() {
         <div className={styles.heroContent}>
           <div className={styles.badge}>
             <span className={styles.badgeIcon}>◈</span>
-            <span>Physical AI & Humanoid Robotics</span>
+            <span>Vectra - Physical AI & Robotics</span>
           </div>
           <h1 className={styles.heroTitle}>
             <span className={styles.titleLine}>AI learned to think.</span>
@@ -673,7 +673,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="From Digital AI to Physical Robotics"
-      description="Physical AI & Humanoid Robotics - Master the complete pipeline from ROS 2 foundations to voice-controlled humanoid robots. Build autonomous systems that perceive, reason, and act in the physical world.">
+      description="Vectra - Master the complete pipeline from ROS 2 foundations to voice-controlled humanoid robots. Build autonomous systems that perceive, reason, and act in the physical world.">
       <main className={styles.main}>
         <HeroSection />
         <TechStackSection />
