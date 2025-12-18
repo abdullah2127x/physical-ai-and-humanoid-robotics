@@ -147,6 +147,35 @@
   overflow: hidden;
 }
 
+.heroWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  max-width: 1400px;
+  width: 100%;
+  z-index: 1;
+}
+
+@media (max-width: 1100px) {
+  .heroWrapper {
+    flex-direction: column;
+    gap: 3rem;
+  }
+}
+
+.heroRobot {
+  flex-shrink: 0;
+  animation: fadeIn 1s ease-out 0.5s backwards;
+}
+
+@media (max-width: 1100px) {
+  .heroRobot {
+    order: -1;
+  }
+}
+
 .heroBackground {
   position: absolute;
   inset: 0;
@@ -1070,4 +1099,349 @@
 .ctaButtonSecondary:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* ============================================
+   ANIMATED ROBOT STYLES
+   ============================================ */
+
+/* Robot Keyframe Animations */
+@keyframes robotFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes robotBreathing {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes coreGlow {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes corePulse {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes antennaGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes armSwing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+
+@keyframes legShift {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes sideLight {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.15;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(30px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes mouthTalk {
+  0%, 100% {
+    opacity: 0.6;
+    width: 30px;
+  }
+  25% {
+    opacity: 0.9;
+    width: 35px;
+  }
+  50% {
+    opacity: 0.7;
+    width: 25px;
+  }
+  75% {
+    opacity: 1;
+    width: 32px;
+  }
+}
+
+/* Robot Container */
+.robotContainer {
+  position: relative;
+  width: 320px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1100px) {
+  .robotContainer {
+    width: 250px;
+    height: 320px;
+  }
+}
+
+@media (max-width: 600px) {
+  .robotContainer {
+    width: 200px;
+    height: 260px;
+  }
+}
+
+/* Robot SVG */
+.robotSvg {
+  width: 100%;
+  height: 100%;
+  animation: robotFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px rgba(0, 255, 136, 0.2));
+}
+
+/* Antenna */
+.antenna {
+  transform-origin: 100px 25px;
+}
+
+.antennaLight {
+  animation: antennaGlow 1.5s ease-in-out infinite;
+}
+
+/* Robot Head */
+.robotHead {
+  animation: robotBreathing 3s ease-in-out infinite;
+  transform-origin: center 60px;
+}
+
+/* Eyes */
+.eyes {
+  transition: all 0.1s ease-out;
+}
+
+.eyeSocket {
+  transition: ry 0.15s ease;
+}
+
+.eye {
+  transition: all 0.1s ease-out;
+}
+
+.pupil {
+  transition: all 0.1s ease-out;
+}
+
+/* Side Lights */
+.sideLight {
+  animation: sideLight 2s ease-in-out infinite;
+}
+
+.sideLight:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+/* Mouth */
+.mouth rect {
+  animation: mouthTalk 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Robot Body */
+.robotBody {
+  animation: robotBreathing 3s ease-in-out infinite;
+  transform-origin: center 150px;
+}
+
+/* Core Energy */
+.core {
+  animation: coreGlow 2s ease-in-out infinite;
+}
+
+.coreInner {
+  animation: corePulse 1s ease-in-out infinite;
+}
+
+/* Arms */
+.leftArm {
+  animation: armSwing 4s ease-in-out infinite;
+  transform-origin: 30px 120px;
+}
+
+.rightArm {
+  animation: armSwing 4s ease-in-out infinite reverse;
+  transform-origin: 170px 120px;
+  animation-delay: 0.5s;
+}
+
+/* Legs */
+.leftLeg {
+  animation: legShift 3s ease-in-out infinite;
+}
+
+.rightLeg {
+  animation: legShift 3s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* Shadow */
+.shadow {
+  animation: shadowPulse 4s ease-in-out infinite;
+}
+
+/* Particles */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  animation: particleFloat 4s ease-in-out infinite;
+  opacity: 0;
+}
+
+.particle:nth-child(1) {
+  left: 20%;
+  bottom: 30%;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  left: 80%;
+  bottom: 40%;
+  animation-delay: 0.8s;
+}
+
+.particle:nth-child(3) {
+  left: 30%;
+  bottom: 20%;
+  animation-delay: 1.6s;
+}
+
+.particle:nth-child(4) {
+  left: 70%;
+  bottom: 25%;
+  animation-delay: 2.4s;
+}
+
+.particle:nth-child(5) {
+  left: 50%;
+  bottom: 35%;
+  animation-delay: 3.2s;
+}
+
+.particle:nth-child(6) {
+  left: 40%;
+  bottom: 45%;
+  animation-delay: 0.4s;
+}
+
+/* Light mode robot adjustments */
+[data-theme='light'] .robotSvg {
+  filter: drop-shadow(0 20px 40px rgba(0, 170, 85, 0.25));
+}
+
+[data-theme='light'] .particle {
+  background: var(--color-accent);
+}
+
+/* Reduced motion for robot */
+@media (prefers-reduced-motion: reduce) {
+  .robotSvg,
+  .antenna,
+  .antennaLight,
+  .robotHead,
+  .robotBody,
+  .core,
+  .coreInner,
+  .leftArm,
+  .rightArm,
+  .leftLeg,
+  .rightLeg,
+  .shadow,
+  .sideLight,
+  .mouth rect,
+  .particle {
+    animation: none !important;
+  }
 }

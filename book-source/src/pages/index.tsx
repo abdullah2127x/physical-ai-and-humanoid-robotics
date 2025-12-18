@@ -1,8 +1,302 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 
 import styles from './index.module.css';
+
+// Animated Robot Component with Cursor-Tracking Eyes
+function AnimatedRobot() {
+  const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
+  const [isBlinking, setIsBlinking] = useState(false);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    // Get the robot container position
+    const robotElement = document.getElementById('robot-container');
+    if (!robotElement) return;
+
+    const rect = robotElement.getBoundingClientRect();
+    const robotCenterX = rect.left + rect.width / 2;
+    const robotCenterY = rect.top + rect.height / 3; // Eyes are in upper third
+
+    // Calculate angle and distance from robot center to cursor
+    const deltaX = e.clientX - robotCenterX;
+    const deltaY = e.clientY - robotCenterY;
+
+    // Limit eye movement range
+    const maxMove = 8;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const normalizedDistance = Math.min(distance / 300, 1);
+
+    const moveX = (deltaX / (distance || 1)) * maxMove * normalizedDistance;
+    const moveY = (deltaY / (distance || 1)) * maxMove * normalizedDistance;
+
+    setEyePosition({ x: moveX, y: moveY });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove]);
+
+  // Random blinking effect
+  useEffect(() => {
+    const blinkInterval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        setIsBlinking(true);
+        setTimeout(() => setIsBlinking(false), 150);
+      }
+    }, 2000);
+
+    return () => clearInterval(blinkInterval);
+  }, []);
+
+  return (
+    <div id="robot-container" className={styles.robotContainer}>
+      <svg
+        viewBox="0 0 200 280"
+        className={styles.robotSvg}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Definitions for gradients and filters */}
+        <defs>
+          {/* Body gradient */}
+          <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2a2a3e" />
+            <stop offset="50%" stopColor="#1a1a2e" />
+            <stop offset="100%" stopColor="#0f0f1a" />
+          </linearGradient>
+
+          {/* Accent gradient */}
+          <linearGradient id="accentGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#00ff88" />
+            <stop offset="100%" stopColor="#00aa55" />
+          </linearGradient>
+
+          {/* Eye glow */}
+          <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#00ffff" stopOpacity="1" />
+            <stop offset="70%" stopColor="#00aaff" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#0066ff" stopOpacity="0" />
+          </radialGradient>
+
+          {/* Core glow */}
+          <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#00ff88" stopOpacity="1" />
+            <stop offset="60%" stopColor="#00ff88" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+          </radialGradient>
+
+          {/* Glow filter */}
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          {/* Strong glow filter */}
+          <filter id="strongGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Antenna */}
+        <g className={styles.antenna}>
+          <line x1="100" y1="25" x2="100" y2="5" stroke="#00ff88" strokeWidth="2" />
+          <circle cx="100" cy="5" r="4" fill="#00ff88" filter="url(#strongGlow)" className={styles.antennaLight} />
+        </g>
+
+        {/* Head */}
+        <g className={styles.robotHead}>
+          {/* Head base */}
+          <rect x="55" y="25" width="90" height="70" rx="15" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1.5" />
+
+          {/* Visor/Face plate */}
+          <rect x="62" y="35" width="76" height="45" rx="10" fill="#0a0a15" stroke="#00aaff" strokeWidth="1" opacity="0.9" />
+
+          {/* Eyes container */}
+          <g className={styles.eyes}>
+            {/* Left eye socket */}
+            <ellipse cx="80" cy="57" rx="14" ry={isBlinking ? 2 : 12} fill="#001122" className={styles.eyeSocket} />
+            {/* Left eye */}
+            <ellipse
+              cx={80 + eyePosition.x}
+              cy={57 + eyePosition.y}
+              rx="8"
+              ry={isBlinking ? 1 : 8}
+              fill="url(#eyeGlow)"
+              filter="url(#glow)"
+              className={styles.eye}
+            />
+            {/* Left pupil */}
+            <circle
+              cx={80 + eyePosition.x * 1.2}
+              cy={57 + eyePosition.y * 1.2}
+              r={isBlinking ? 0 : 3}
+              fill="#ffffff"
+              className={styles.pupil}
+            />
+
+            {/* Right eye socket */}
+            <ellipse cx="120" cy="57" rx="14" ry={isBlinking ? 2 : 12} fill="#001122" className={styles.eyeSocket} />
+            {/* Right eye */}
+            <ellipse
+              cx={120 + eyePosition.x}
+              cy={57 + eyePosition.y}
+              rx="8"
+              ry={isBlinking ? 1 : 8}
+              fill="url(#eyeGlow)"
+              filter="url(#glow)"
+              className={styles.eye}
+            />
+            {/* Right pupil */}
+            <circle
+              cx={120 + eyePosition.x * 1.2}
+              cy={57 + eyePosition.y * 1.2}
+              r={isBlinking ? 0 : 3}
+              fill="#ffffff"
+              className={styles.pupil}
+            />
+          </g>
+
+          {/* Mouth/Speaker grille */}
+          <g className={styles.mouth}>
+            <rect x="85" y="72" width="30" height="3" rx="1.5" fill="#00ff88" opacity="0.6" />
+          </g>
+
+          {/* Head side lights */}
+          <circle cx="58" cy="60" r="3" fill="#00ff88" filter="url(#glow)" className={styles.sideLight} />
+          <circle cx="142" cy="60" r="3" fill="#00ff88" filter="url(#glow)" className={styles.sideLight} />
+        </g>
+
+        {/* Neck */}
+        <rect x="85" y="95" width="30" height="15" rx="3" fill="url(#bodyGradient)" stroke="#333" strokeWidth="1" />
+        <rect x="90" y="98" width="20" height="2" fill="#00ff88" opacity="0.5" />
+        <rect x="90" y="103" width="20" height="2" fill="#00ff88" opacity="0.5" />
+
+        {/* Body/Torso */}
+        <g className={styles.robotBody}>
+          {/* Main torso */}
+          <path
+            d="M50 110 L60 110 L65 115 L135 115 L140 110 L150 110 L155 120 L155 190 L145 200 L55 200 L45 190 L45 120 Z"
+            fill="url(#bodyGradient)"
+            stroke="#00ff88"
+            strokeWidth="1.5"
+          />
+
+          {/* Chest plate */}
+          <rect x="70" y="125" width="60" height="50" rx="8" fill="#0a0a15" stroke="#00aaff" strokeWidth="1" opacity="0.8" />
+
+          {/* Core energy */}
+          <circle cx="100" cy="150" r="18" fill="url(#coreGlow)" filter="url(#strongGlow)" className={styles.core} />
+          <circle cx="100" cy="150" r="10" fill="#00ff88" className={styles.coreInner} />
+          <circle cx="100" cy="150" r="5" fill="#ffffff" opacity="0.8" />
+
+          {/* Chest details */}
+          <rect x="72" y="178" width="56" height="3" rx="1.5" fill="#00ff88" opacity="0.4" />
+          <rect x="72" y="184" width="40" height="2" rx="1" fill="#00aaff" opacity="0.3" />
+
+          {/* Shoulder joints */}
+          <circle cx="45" cy="120" r="10" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+          <circle cx="155" cy="120" r="10" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+          <circle cx="45" cy="120" r="4" fill="#00aaff" filter="url(#glow)" />
+          <circle cx="155" cy="120" r="4" fill="#00aaff" filter="url(#glow)" />
+        </g>
+
+        {/* Arms */}
+        <g className={styles.leftArm}>
+          {/* Upper arm */}
+          <rect x="20" y="120" width="20" height="45" rx="5" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+          <rect x="24" y="130" width="12" height="3" fill="#00ff88" opacity="0.4" />
+
+          {/* Elbow joint */}
+          <circle cx="30" cy="170" r="8" fill="url(#bodyGradient)" stroke="#00aaff" strokeWidth="1" />
+
+          {/* Lower arm */}
+          <rect x="22" y="175" width="16" height="40" rx="4" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Hand */}
+          <ellipse cx="30" cy="220" rx="10" ry="8" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+          <circle cx="30" cy="220" r="4" fill="#00aaff" filter="url(#glow)" />
+        </g>
+
+        <g className={styles.rightArm}>
+          {/* Upper arm */}
+          <rect x="160" y="120" width="20" height="45" rx="5" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+          <rect x="164" y="130" width="12" height="3" fill="#00ff88" opacity="0.4" />
+
+          {/* Elbow joint */}
+          <circle cx="170" cy="170" r="8" fill="url(#bodyGradient)" stroke="#00aaff" strokeWidth="1" />
+
+          {/* Lower arm */}
+          <rect x="162" y="175" width="16" height="40" rx="4" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Hand */}
+          <ellipse cx="170" cy="220" rx="10" ry="8" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+          <circle cx="170" cy="220" r="4" fill="#00aaff" filter="url(#glow)" />
+        </g>
+
+        {/* Waist */}
+        <rect x="60" y="200" width="80" height="15" rx="5" fill="url(#bodyGradient)" stroke="#333" strokeWidth="1" />
+        <rect x="80" y="204" width="40" height="3" fill="#00ff88" opacity="0.3" />
+
+        {/* Legs */}
+        <g className={styles.leftLeg}>
+          {/* Hip joint */}
+          <circle cx="75" cy="220" r="8" fill="url(#bodyGradient)" stroke="#00aaff" strokeWidth="1" />
+
+          {/* Upper leg */}
+          <rect x="65" y="225" width="20" height="35" rx="5" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Knee joint */}
+          <circle cx="75" cy="265" r="6" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+
+          {/* Lower leg */}
+          <rect x="67" y="268" width="16" height="30" rx="4" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Foot */}
+          <ellipse cx="75" cy="302" rx="14" ry="6" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+        </g>
+
+        <g className={styles.rightLeg}>
+          {/* Hip joint */}
+          <circle cx="125" cy="220" r="8" fill="url(#bodyGradient)" stroke="#00aaff" strokeWidth="1" />
+
+          {/* Upper leg */}
+          <rect x="115" y="225" width="20" height="35" rx="5" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Knee joint */}
+          <circle cx="125" cy="265" r="6" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+
+          {/* Lower leg */}
+          <rect x="117" y="268" width="16" height="30" rx="4" fill="url(#bodyGradient)" stroke="#444" strokeWidth="1" />
+
+          {/* Foot */}
+          <ellipse cx="125" cy="302" rx="14" ry="6" fill="url(#bodyGradient)" stroke="#00ff88" strokeWidth="1" />
+        </g>
+
+        {/* Ground shadow */}
+        <ellipse cx="100" cy="310" rx="50" ry="8" fill="rgba(0, 255, 136, 0.1)" className={styles.shadow} />
+      </svg>
+
+      {/* Particle effects around robot */}
+      <div className={styles.particles}>
+        <span className={styles.particle}></span>
+        <span className={styles.particle}></span>
+        <span className={styles.particle}></span>
+        <span className={styles.particle}></span>
+        <span className={styles.particle}></span>
+        <span className={styles.particle}></span>
+      </div>
+    </div>
+  );
+}
 
 function HeroSection() {
   return (
@@ -12,50 +306,58 @@ function HeroSection() {
         <div className={styles.glowOrb}></div>
         <div className={styles.glowOrb2}></div>
       </div>
-      <div className={styles.heroContent}>
-        <div className={styles.badge}>
-          <span className={styles.badgeIcon}>◈</span>
-          <span>Physical AI & Humanoid Robotics</span>
+
+      <div className={styles.heroWrapper}>
+        <div className={styles.heroContent}>
+          <div className={styles.badge}>
+            <span className={styles.badgeIcon}>◈</span>
+            <span>Physical AI & Humanoid Robotics</span>
+          </div>
+          <h1 className={styles.heroTitle}>
+            <span className={styles.titleLine}>AI learned to think.</span>
+            <span className={styles.titleLine}>
+              <span className={styles.highlight}>Now teach it to move.</span>
+            </span>
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Master the complete pipeline from ROS 2 foundations to voice-controlled
+            humanoid robots. Build autonomous systems that perceive, reason, and act
+            in the physical world.
+          </p>
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>10</span>
+              <span className={styles.statLabel}>Chapters</span>
+            </div>
+            <div className={styles.statDivider}></div>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>80+</span>
+              <span className={styles.statLabel}>Lessons</span>
+            </div>
+            <div className={styles.statDivider}></div>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>4</span>
+              <span className={styles.statLabel}>Parts</span>
+            </div>
+          </div>
+          <div className={styles.ctaGroup}>
+            <Link className={styles.ctaPrimary} to="/docs/intro">
+              <span>Start Learning</span>
+              <svg className={styles.ctaArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </Link>
+            <Link className={styles.ctaSecondary} to="/docs/Part-1-ROS2-Foundation">
+              View Curriculum
+            </Link>
+          </div>
         </div>
-        <h1 className={styles.heroTitle}>
-          <span className={styles.titleLine}>AI learned to think.</span>
-          <span className={styles.titleLine}>
-            <span className={styles.highlight}>Now teach it to move.</span>
-          </span>
-        </h1>
-        <p className={styles.heroSubtitle}>
-          Master the complete pipeline from ROS 2 foundations to voice-controlled
-          humanoid robots. Build autonomous systems that perceive, reason, and act
-          in the physical world.
-        </p>
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <span className={styles.statNumber}>10</span>
-            <span className={styles.statLabel}>Chapters</span>
-          </div>
-          <div className={styles.statDivider}></div>
-          <div className={styles.stat}>
-            <span className={styles.statNumber}>80+</span>
-            <span className={styles.statLabel}>Lessons</span>
-          </div>
-          <div className={styles.statDivider}></div>
-          <div className={styles.stat}>
-            <span className={styles.statNumber}>4</span>
-            <span className={styles.statLabel}>Parts</span>
-          </div>
-        </div>
-        <div className={styles.ctaGroup}>
-          <Link className={styles.ctaPrimary} to="/docs/intro">
-            <span>Start Learning</span>
-            <svg className={styles.ctaArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </Link>
-          <Link className={styles.ctaSecondary} to="/docs/Part-1-ROS2-Foundation">
-            View Curriculum
-          </Link>
+
+        <div className={styles.heroRobot}>
+          <AnimatedRobot />
         </div>
       </div>
+
       <div className={styles.scrollIndicator}>
         <span>Scroll to explore</span>
         <div className={styles.scrollLine}></div>
